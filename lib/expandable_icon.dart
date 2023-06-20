@@ -1,3 +1,4 @@
+import 'package:expandable_menu/expandcontroller.dart';
 import 'package:flutter/material.dart';
 
 /// [ExpandableIcon] is icon of [ExpandableMenu] widget.
@@ -19,12 +20,15 @@ class ExpandableIcon extends StatefulWidget {
   /// This property is color of icon(Hamburger icon and arrow icon).
   final Color iconColor;
 
-  const ExpandableIcon({
+  ExpandableIconController expandIconController;
+
+  ExpandableIcon({
     Key? key,
     required this.onClicked,
     required this.width,
     required this.height,
     required this.iconColor,
+    required this.expandIconController,
   }) : super(key: key);
 
   @override
@@ -66,7 +70,7 @@ class _ExpandableIconState extends State<ExpandableIcon>
   late double iconHeight;
 
   /// This controller changes icon state.
-  final _expandableIconController = ExpandableIconController();
+  // final _expandableIconController = ExpandableIconController();
 
   @override
   void initState() {
@@ -74,7 +78,7 @@ class _ExpandableIconState extends State<ExpandableIcon>
     iconHeight = widget.height * 0.7;
 
     _hamburgerAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
 
@@ -86,12 +90,12 @@ class _ExpandableIconState extends State<ExpandableIcon>
           _hamburgerProgress = _hamburgerAnimation.value;
         });
         if (_hamburgerAnimation.isCompleted) {
-          _expandableIconController.setExpandStatus();
+          widget.expandIconController.setExpandStatus();
         }
       });
 
     _arrowAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
 
@@ -104,9 +108,14 @@ class _ExpandableIconState extends State<ExpandableIcon>
         });
       });
 
-    _expandableIconController.addListener(() {
-      if (_expandableIconController.isExpanded) {
-        Future.delayed(const Duration(milliseconds: 400), () {
+    widget.expandIconController.addListener(() {
+      if (widget.expandIconController.isRevealed) {
+        widget.expandIconController.isRevealed = false;
+        onTapToExpand();
+        return;
+      }
+      if (widget.expandIconController.isExpanded) {
+        Future.delayed(const Duration(milliseconds: 160), () {
           _arrowAnimationController.forward();
         });
       } else {
@@ -121,8 +130,27 @@ class _ExpandableIconState extends State<ExpandableIcon>
   void dispose() {
     _arrowAnimationController.dispose();
     _hamburgerAnimationController.dispose();
-    _expandableIconController.dispose();
+    // widget.expandIconController.dispose();
     super.dispose();
+  }
+
+  void onTapToExpand() {
+    if (!_isAnimating) {
+      if (_hamburgerAnimationController.isCompleted) {
+        _animationLocker();
+        widget.expandIconController.setExpandStatus();
+        widget.onClicked();
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _hamburgerAnimationController.reverse();
+        });
+      } else {
+        _animationLocker();
+        _hamburgerAnimationController.forward();
+        Future.delayed(const Duration(milliseconds: 150), () {
+          widget.onClicked();
+        });
+      }
+    }
   }
 
   @override
@@ -137,22 +165,7 @@ class _ExpandableIconState extends State<ExpandableIcon>
             splashColor: Colors.black.withOpacity(.2),
             borderRadius: BorderRadius.all(Radius.circular(widget.width)),
             onTap: () {
-              if (!_isAnimating) {
-                if (_hamburgerAnimationController.isCompleted) {
-                  _animationLocker();
-                  _expandableIconController.setExpandStatus();
-                  widget.onClicked();
-                  Future.delayed(const Duration(milliseconds: 800), () {
-                    _hamburgerAnimationController.reverse();
-                  });
-                } else {
-                  _animationLocker();
-                  _hamburgerAnimationController.forward();
-                  Future.delayed(const Duration(milliseconds: 250), () {
-                    widget.onClicked();
-                  });
-                }
-              }
+              onTapToExpand();
             },
             child: CustomPaint(
               size: Size(iconWidth, iconHeight),
@@ -232,16 +245,5 @@ class MyPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter old) {
     return true;
-  }
-}
-
-/// This class is controller for control expand icon.
-class ExpandableIconController extends ChangeNotifier {
-  bool isExpanded = false;
-
-  /// This method will change expand status.
-  void setExpandStatus() {
-    isExpanded = !isExpanded;
-    notifyListeners();
   }
 }

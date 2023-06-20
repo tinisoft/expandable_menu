@@ -2,6 +2,7 @@ library expandable_menu;
 
 import 'dart:async';
 
+import 'package:expandable_menu/expandcontroller.dart';
 import 'package:flutter/material.dart';
 
 import 'expandable_icon.dart';
@@ -30,7 +31,9 @@ class ExpandableMenu extends StatefulWidget {
   /// and if it's be null default value is [Colors.white.withOpacity(.4)]
   final Color? itemContainerColor;
 
-  const ExpandableMenu({
+  ExpandableIconController expandIconController;
+
+  ExpandableMenu({
     Key? key,
     this.width = 70.0,
     this.height = 70.0,
@@ -38,6 +41,7 @@ class ExpandableMenu extends StatefulWidget {
     this.backgroundColor = const Color(0xFF4B5042),
     this.iconColor = Colors.white,
     this.itemContainerColor,
+    required this.expandIconController,
   }) : super(key: key);
 
   @override
@@ -83,7 +87,7 @@ class _ExpandableMenuState extends State<ExpandableMenu>
   void initState() {
     _width = widget.width;
     _containerAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
 
@@ -103,7 +107,7 @@ class _ExpandableMenuState extends State<ExpandableMenu>
 
     super.initState();
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 10), () {
       _width = _width + _spacerKey.currentContext!.size!.width;
       _listWidth = _width - widget.width;
       _listItemSize = itemSize();
@@ -145,6 +149,7 @@ class _ExpandableMenuState extends State<ExpandableMenu>
                 width: widget.width,
                 height: widget.height,
                 iconColor: widget.iconColor,
+                expandIconController: widget.expandIconController,
                 onClicked: () {
                   onExpandableIconClicked();
                 },
@@ -179,7 +184,7 @@ class _ExpandableMenuState extends State<ExpandableMenu>
       if (_isExpanded) {
         _containerAnimationController.forward();
         if (_listWidget.isEmpty) {
-          Timer.periodic(const Duration(milliseconds: 60), (timer) {
+          Timer.periodic(const Duration(milliseconds: 10), (timer) {
             _listTimer = timer;
             final allWidgets = widget.items;
             if (_listWidget.length < allWidgets.length) {
