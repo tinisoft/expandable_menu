@@ -159,7 +159,9 @@ class _ExpandableIconState extends State<ExpandableIcon>
       quarterTurns: Directionality.of(context) == TextDirection.rtl ? 2 : 0,
       child: Center(
         child: Material(
-          color: Colors.transparent,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          color: Color.fromARGB(130, 255, 255, 255),
           child: InkWell(
             highlightColor: Colors.black.withOpacity(.2),
             splashColor: Colors.black.withOpacity(.2),
