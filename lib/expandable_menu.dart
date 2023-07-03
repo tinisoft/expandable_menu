@@ -32,17 +32,21 @@ class ExpandableMenu extends StatefulWidget {
   final Color? itemContainerColor;
 
   ExpandableIconController expandIconController;
+  Widget? settingsButton;
+  bool isSettingsButtonNeeded = false;
 
-  ExpandableMenu({
-    Key? key,
-    this.width = 70.0,
-    this.height = 70.0,
-    required this.items,
-    this.backgroundColor = const Color(0xFF4B5042),
-    this.iconColor = Colors.white,
-    this.itemContainerColor,
-    required this.expandIconController,
-  }) : super(key: key);
+  ExpandableMenu(
+      {Key? key,
+      this.width = 70.0,
+      this.height = 70.0,
+      required this.items,
+      this.backgroundColor = const Color(0xFF4B5042),
+      this.iconColor = Colors.white,
+      this.itemContainerColor,
+      required this.expandIconController,
+      this.settingsButton,
+      required this.isSettingsButtonNeeded})
+      : super(key: key);
 
   @override
   State<ExpandableMenu> createState() => _ExpandableMenuState();
@@ -122,56 +126,74 @@ class _ExpandableMenuState extends State<ExpandableMenu>
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Spacer(
-          key: _spacerKey,
-        ),
-        Container(
-          clipBehavior: Clip.antiAlias,
-          width: _width * _containerProgress,
-          constraints:
-              BoxConstraints(minWidth: widget.width, minHeight: widget.height),
-          decoration: BoxDecoration(
-              color: widget.backgroundColor,
-              borderRadius: BorderRadius.all(Radius.circular(
-                  widget.width >= widget.height
-                      ? widget.width
-                      : widget.height))),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: widget.width * .15,
-              ),
-              ExpandableIcon(
-                width: widget.width,
-                height: widget.height,
-                iconColor: widget.iconColor,
-                expandIconController: widget.expandIconController,
-                onClicked: () {
-                  onExpandableIconClicked();
-                },
-              ),
-              SizedBox(
-                width: _containerProgress < 0.9
-                    ? 0
-                    : _listWidth * _containerProgress,
-                height: widget.height,
-                child: Directionality(
-                  textDirection: Directionality.of(context) == TextDirection.rtl
-                      ? TextDirection.ltr
-                      : TextDirection.rtl,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: _listWidget,
+        Row(
+          children: [
+            Spacer(
+              key: _spacerKey,
+            ),
+            Container(
+              clipBehavior: Clip.antiAlias,
+              width: _width * _containerProgress,
+              constraints: BoxConstraints(
+                  minWidth: widget.width, minHeight: widget.height),
+              decoration: BoxDecoration(
+                  color: widget.backgroundColor,
+                  borderRadius: BorderRadius.all(Radius.circular(
+                      widget.width >= widget.height
+                          ? widget.width
+                          : widget.height))),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: widget.width * .15,
                   ),
-                ),
+                  ExpandableIcon(
+                    width: widget.width,
+                    height: widget.height,
+                    iconColor: widget.iconColor,
+                    expandIconController: widget.expandIconController,
+                    onClicked: () {
+                      onExpandableIconClicked();
+                    },
+                  ),
+                  SizedBox(
+                    width: _containerProgress < 0.9
+                        ? 0
+                        : _listWidth * _containerProgress,
+                    height: widget.height,
+                    child: Directionality(
+                      textDirection:
+                          Directionality.of(context) == TextDirection.rtl
+                              ? TextDirection.ltr
+                              : TextDirection.rtl,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: _listWidget,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ),
+          ],
+        ),
+        Visibility(
+          visible: _isExpanded,
+          child: Row(
+            children: [
+              const SizedBox(width: 25),
+              if (widget.settingsButton != null)
+                Visibility(
+                    visible: widget.isSettingsButtonNeeded,
+                    child: widget.settingsButton!),
             ],
           ),
-        ),
+        )
       ],
     );
   }
@@ -187,6 +209,9 @@ class _ExpandableMenuState extends State<ExpandableMenu>
           Timer.periodic(const Duration(milliseconds: 10), (timer) {
             _listTimer = timer;
             final allWidgets = widget.items;
+            if (allWidgets.length == 2) {
+              allWidgets.add(widget.settingsButton!);
+            }
             if (_listWidget.length < allWidgets.length) {
               if (_listWidget.isEmpty) {
                 final item = widget.items[0];
