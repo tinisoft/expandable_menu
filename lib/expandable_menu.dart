@@ -209,7 +209,7 @@ class _ExpandableMenuState extends State<ExpandableMenu>
           Timer.periodic(const Duration(milliseconds: 10), (timer) {
             _listTimer = timer;
             final allWidgets = widget.items;
-            if (allWidgets.length == 2) {
+            if (allWidgets.length == 2 && widget.settingsButton != null) {
               allWidgets.add(widget.settingsButton!);
             }
             if (_listWidget.length < allWidgets.length) {
